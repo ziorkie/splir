@@ -42,8 +42,28 @@ public class User {
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
-
     private Set<Role> roles = new HashSet<>();
+
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private PaymentDetail paymentDetail;
+
+    public void createConnectionWith(PaymentDetail paymentDetail){
+        this.paymentDetail=paymentDetail;
+        paymentDetail.setUser(this);
+    }
+    public void removeConnectionWith(){
+        this.paymentDetail.setUser(null);
+        this.paymentDetail=null;
+    }
+
+    public PaymentDetail getPaymentDetail() {
+        return paymentDetail;
+    }
+
+    public void setPaymentDetail(PaymentDetail paymentDetail) {
+        this.paymentDetail = paymentDetail;
+    }
 
     public User() {
     }

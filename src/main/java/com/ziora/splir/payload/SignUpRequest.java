@@ -1,5 +1,7 @@
 package com.ziora.splir.payload;
 
+import org.springframework.format.annotation.NumberFormat;
+
 import javax.validation.constraints.*;
 
 public class SignUpRequest {
@@ -24,7 +26,31 @@ public class SignUpRequest {
     @Size(min=3, max=40)
     private String surname;
 
+    @Min(500000000)
+    @Max(999999999)
+    @NumberFormat(style = NumberFormat.Style.NUMBER)
+    private Integer phoneNumber;
 
+    @NotBlank
+    @Size(min=26, max=26)
+    @NumberFormat(style= NumberFormat.Style.NUMBER)
+    private String accountNumber;
+
+    public Integer getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(Integer phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
 
     public String getName() {
         return name;

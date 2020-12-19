@@ -1,11 +1,12 @@
 package com.ziora.splir.controller;
 
-import com.ziora.splir.model.Role;
+import com.ziora.splir.model.PaymentDetail;
 import com.ziora.splir.model.User;
 import com.ziora.splir.payload.ApiResponse;
 import com.ziora.splir.payload.JwtAuthenticationResponse;
 import com.ziora.splir.payload.LoginRequest;
 import com.ziora.splir.payload.SignUpRequest;
+import com.ziora.splir.repository.PaymentDetailRepository;
 import com.ziora.splir.repository.UserRepository;
 import com.ziora.splir.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,9 @@ public class AuthController {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    PaymentDetailRepository paymentDetailRepository;
+
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
@@ -71,12 +75,12 @@ public class AuthController {
         User user = new User(signUpRequest.getUsername(), signUpRequest.getPassword(), signUpRequest.getEmail(),
                 signUpRequest.getName(), signUpRequest.getSurname());
 
+        PaymentDetail paymentDetail = new PaymentDetail(signUpRequest.getPhoneNumber(), signUpRequest.getAccountNumber());
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-//        Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
-//                .orElseThrow(() -> new AppException("User Role not set."));
+        user.createConnectionWith(paymentDetail);
 
-//        user.setRoles(Collections.singleton(userRole));
 
         User result = userRepository.save(user);
 
