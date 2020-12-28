@@ -48,6 +48,8 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private PaymentDetail paymentDetail;
 
+
+
     public void createConnectionWith(PaymentDetail paymentDetail){
         this.paymentDetail=paymentDetail;
         paymentDetail.setUser(this);
