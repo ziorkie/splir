@@ -1,0 +1,38 @@
+@startuml
+left to right direction
+title Diagram przypadków użycia
+
+package Splir {
+    usecase (Dodaj wydatek osobisty) as addSoloExpense
+    usecase (Utwórz pokój) as createRoom
+    usecase (Dołącz do istniejącego pokoju) as joinRoom
+    usecase (Dodaj wydatek grupowy) as addGroupExpense
+    usecase (Dodaj znajomego do pokoju) as addFriendToGroup
+    usecase (Zamknij pokój) as closeRoom
+    usecase (Zaproś znajomego) as inviteFriend
+    usecase (Zarządzaj zaproszeniem do listy znajomych) as manageInvite
+    usecase (Wyświetl dane płatności dla danego długu) as viewPaymentDetails
+    usecase (Zatwierdź oddanie długu) as sendMoney
+    usecase (Potwierdź otrzymanie długu) as receiveMoney
+    usecase (Wyświetl dane na temat dłużnika) as viewDebtors
+
+}
+
+
+:Użytkownik zalogowany: as user
+
+
+user -- addSoloExpense
+user -- createRoom
+user -- joinRoom
+user -- addGroupExpense
+user -- addFriendToGroup
+user -- closeRoom
+user -- inviteFriend
+user -- manageInvite
+user -- viewPaymentDetails
+user -- sendMoney
+user -- receiveMoney
+user -- viewDebtors
+
+@enduml
