@@ -1,6 +1,8 @@
 package com.ziora.splir.exception.handler;
 
+import com.ziora.splir.exception.FriendshipNotFoundException;
 import com.ziora.splir.exception.InvitationNotFoundException;
+import com.ziora.splir.exception.RoomNotFoundException;
 import com.ziora.splir.exception.UserNotFoundException;
 import com.ziora.splir.payload.ErrorPayload;
 import org.apache.commons.logging.Log;
@@ -61,6 +63,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity(errorPayload, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(FriendshipNotFoundException.class)
+    public ResponseEntity<ErrorPayload> handleFriendshipNotFoundException(Exception ex){
+        List<String> details = new ArrayList<>();
+        details.add(ex.getLocalizedMessage());
+        ErrorPayload errorPayload = new ErrorPayload("Friendship not found!", details);
+        log.warn(ex);
+        return new ResponseEntity(errorPayload, HttpStatus.NOT_FOUND);
+    }
+
+
     @ExceptionHandler(InvitationNotFoundException.class)
     public ResponseEntity<ErrorPayload> handleInvitationNotFoundException(Exception ex){
         List<String> details = new ArrayList<>();
@@ -68,5 +80,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ErrorPayload errorPayload = new ErrorPayload("Invitation not found!", details);
         log.warn(ex);
         return new ResponseEntity(errorPayload, HttpStatus.NOT_FOUND);
+    }
+
+        @ExceptionHandler(RoomNotFoundException.class)
+    public ResponseEntity<ErrorPayload> handleRoomNotFoundException(Exception ex){
+        List<String> details = new ArrayList<>();
+        details.add(ex.getLocalizedMessage());
+        ErrorPayload errorPayload = new ErrorPayload("Room not found!", details);
+        log.warn(ex);
+        return new ResponseEntity(errorPayload, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
