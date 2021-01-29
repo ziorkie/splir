@@ -1,10 +1,7 @@
 package com.ziora.splir.controller;
 
-import com.ziora.splir.exception.UserNotFoundException;
-import com.ziora.splir.model.User;
 import com.ziora.splir.payload.InvitedUserResponse;
 import com.ziora.splir.payload.UserIdRequest;
-import com.ziora.splir.repository.UserRepository;
 import com.ziora.splir.security.CurrentUser;
 import com.ziora.splir.security.UserPrincipal;
 import com.ziora.splir.service.InvitationService;
@@ -41,7 +38,7 @@ public class InvitationController {
         return new ResponseEntity(invitedUserResponseList, HttpStatus.OK);
     }
 
-    @DeleteMapping("/delete")
+    @PostMapping("/delete")
     public ResponseEntity<String> deleteInvite(@CurrentUser UserPrincipal userPrincipal, @RequestBody UserIdRequest userId) {
         invitationService.deleteInvite(userPrincipal.getId(), userId.getUserId());
         return new ResponseEntity("Invite deleted!", HttpStatus.OK);

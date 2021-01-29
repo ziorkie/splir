@@ -2,6 +2,7 @@ package com.ziora.splir.service;
 
 import com.ziora.splir.exception.UserNotFoundException;
 import com.ziora.splir.model.Friendship;
+import com.ziora.splir.model.FriendshipIdentity;
 import com.ziora.splir.model.User;
 import com.ziora.splir.payload.FriendshipResponse;
 import com.ziora.splir.repository.FriendshipRepository;
@@ -42,5 +43,24 @@ public class FriendshipService {
 
         }
         return friendshipResponseList;
+    }
+
+    public Boolean isFriendship(Long currentUserId, Long userId){
+        List<Friendship> friendsList = friendshipRepository.findFriendshipsById(currentUserId);
+        for(Friendship e:friendsList){
+            if(e.getFriendshipIdentity().getFriendAId()==currentUserId && e.getFriendshipIdentity().getFriendBId()==userId || e.getFriendshipIdentity().getFriendAId()==userId && e.getFriendshipIdentity().getFriendBId()==currentUserId ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void deleteFriend(Long userId, Long friendId){
+
+        FriendshipIdentity friendshipIdentity = new FriendshipIdentity(friendId, userId);
+        Friendship friendship = new Friendship(friendshipIdentity);
+
+        friendshipRepository.delete(friendship);
+
     }
 }

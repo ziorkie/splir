@@ -7,14 +7,12 @@ import com.ziora.splir.payload.InvitedUserResponse;
 import com.ziora.splir.repository.FriendshipRepository;
 import com.ziora.splir.repository.InvitationRepository;
 import com.ziora.splir.repository.UserRepository;
-import com.ziora.splir.security.CurrentUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class InvitationService {
@@ -59,10 +57,13 @@ public class InvitationService {
         return invitedUserResponseList;
     }
 
-    public void deleteInvite(Long userId, Long invitedId){
+    public void deleteInvite(Long userId, Long invitationId){
 
-        InvitationIdentity invitationIdentity = new InvitationIdentity(userId, invitedId);
-        Invitation invitation = new Invitation(invitationIdentity);
+//        InvitationIdentity invitationIdentity = new InvitationIdentity(invitedId, userId);
+
+        Invitation invitation = invitationRepository.findByInvitationIdAndInvitatedId(invitationId, userId).orElseThrow(
+                ()->new InvitationNotFoundException("Invitation not found")
+        );
         invitationRepository.delete(invitation);
     }
 

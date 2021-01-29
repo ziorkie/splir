@@ -1,12 +1,5 @@
 package com.ziora.splir.payload;
 
-import com.ziora.splir.model.Invitation;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 public class InvitedUserResponse {
 
     private Long userId;
