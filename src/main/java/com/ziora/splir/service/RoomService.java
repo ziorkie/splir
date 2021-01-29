@@ -1,22 +1,22 @@
 package com.ziora.splir.service;
 
+import com.ziora.splir.exception.FriendshipNotFoundException;
+import com.ziora.splir.exception.RoomNotFoundException;
 import com.ziora.splir.exception.UserNotFoundException;
-import com.ziora.splir.model.Notification;
-import com.ziora.splir.model.Room;
-import com.ziora.splir.model.GroupExpense;
-import com.ziora.splir.model.User;
+import com.ziora.splir.model.*;
 import com.ziora.splir.payload.CloseRoomHelper;
 import com.ziora.splir.payload.GroupExpenseRequest;
-import com.ziora.splir.repository.NotificationRepository;
-import com.ziora.splir.repository.RoomRepository;
-import com.ziora.splir.repository.GroupExpenseRepository;
-import com.ziora.splir.repository.UserRepository;
-import org.aspectj.weaver.ast.Not;
+import com.ziora.splir.payload.UserResponse;
+import com.ziora.splir.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.swing.*;
-import java.util.*;
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.Stack;
+import java.util.stream.Collectors;
 
 import static java.lang.Math.abs;
 
@@ -35,36 +35,71 @@ public class RoomService {
     @Autowired
     private NotificationRepository notificationRepository;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private SoloExpenseRepository soloExpenseRepository;
+
+    @Autowired
+    private FriendshipService friendshipService;
+
     public void createRoom(String name, Long administratorId){
         Room room = new Room();
         Set<User> users = new HashSet<>();
         room.setAdministratorId(administratorId);
         room.setName(name);
-        users.add(userRepository.findById(administratorId).orElseThrow(()->new UserNotFoundException("CRITICAL")));
+        users.add(userRepository.findById(administratorId).orElseThrow(()->new UserNotFoundException("CRITICAL ERROR - Current user doesn't exist!")));
         room.setUsers(users);
         roomRepository.save(room);
     }
 
+    public List<Room> getRooms(Long currentUserId) throws RoomNotFoundException{
+        List<Room> roomList = roomRepository.findAllByUsers_id(currentUserId);
+        return roomList;
+    }
+
+    public List<UserResponse> getUsers(Long roomId) throws UserNotFoundException{
+        List<User> userList = userRepository.findAllByRoom_id(roomId);
+        List<UserResponse> userResponseList = userList.stream().map(user -> new UserResponse(user.getId(), user.getUsername(), user.getName())).collect(Collectors.toList());
+        return userResponseList;
+    }
+
+    public List<GroupExpense> getRoomExpenses(Long roomId) throws RoomNotFoundException{
+        List<GroupExpense> groupExpenseList = groupExpenseRepository.findByRoomId(roomId);
+        return groupExpenseList;
+    }
+
+    public Double getExpensePerUser(Long roomId) throws RoomNotFoundException{
+        Room room = roomRepository.findById(roomId).orElseThrow(()->new RoomNotFoundException("Couldn't find specified room!"));
+        return room.getTotalExpense()/room.getUsers().size();
+    }
+
+
     public void addRoomUser(Long currentUserId, Long userId, Long roomId){
-        Room room = roomRepository.findById(roomId).orElseThrow(()->new UserNotFoundException("change_me"));
-        if(!room.getAdministratorId().equals(currentUserId)){
+        if(!friendshipService.isFriendship(currentUserId, userId)) {
+            throw new FriendshipNotFoundException("You are not a friend with this user");
+        }
+            Room room = roomRepository.findById(roomId).orElseThrow(()->new RoomNotFoundException("Couldn't find specified room!"));
+            if(!room.getAdministratorId().equals(currentUserId)){
             throw new UserNotFoundException("z czym do ludzi");
         }
         room.getUsers().add(userRepository.findById(userId).orElseThrow(()->new UserNotFoundException("user not found")));
         roomRepository.save(room);
+
     }
 
     public void removeUser(Long currentUserId, Long userId, Long roomId){
-        Room room = roomRepository.findById(roomId).orElseThrow(()->new UserNotFoundException("change_me"));
+        Room room = roomRepository.findById(roomId).orElseThrow(()->new RoomNotFoundException("Couldn't find specified room!"));
         if(!room.getAdministratorId().equals(currentUserId)){
             throw new UserNotFoundException("z czym do ludzi");
         }
-        room.getUsers().remove(userRepository.findById(userId).orElseThrow(()->new UserNotFoundException("user not found")));
+        room.getUsers().remove(userRepository.findById(userId).orElseThrow(()->new UserNotFoundException("User not found!")));
         roomRepository.save(room);
     }
 
     public void addExpense(Long userId, GroupExpenseRequest groupExpenseRequest){
-        Room room = roomRepository.findById(groupExpenseRequest.getRoomId()).orElseThrow(()->new UserNotFoundException("change_me"));
+        Room room = roomRepository.findById(groupExpenseRequest.getRoomId()).orElseThrow(()->new RoomNotFoundException("Couldn't find specified room!"));
         if (!room.getUsers().contains(userRepository.findById(userId)
                 .orElseThrow(()->new UserNotFoundException("user not found"))))
             throw new UserNotFoundException("change me");
@@ -80,12 +115,18 @@ public class RoomService {
     }
 
 
+
       public void closeRoom(Long userId, Long roomId){
-        Room room = roomRepository.findById(roomId).orElseThrow(()->new UserNotFoundException("change_me"));
+        Room room = roomRepository.findById(roomId).orElseThrow(()->new RoomNotFoundException("Couldn't find specified room!"));
           if(!userId.equals(room.getAdministratorId()))
             throw new UserNotFoundException("omg");
-          Double averageValue = room.getTotalExpense()/room.getUsers().size();
-          //TODO:optimize this, these sets are not necessary
+          String text = Double.toString(Math.abs(room.getTotalExpense()/room.getUsers().size()));
+          int integerPlaces = text.indexOf('.');
+          int decimalPlaces = text.length() - integerPlaces - 1;
+          Double averageValue = Math.round(room.getTotalExpense()/room.getUsers().size()*100.0)/100.0;
+          if(((room.getTotalExpense()/room.getUsers().size()%1)<0.5)&&decimalPlaces>2){
+              averageValue=averageValue+0.01;
+          }
           Set<CloseRoomHelper> totalExpensePerUser = new HashSet<>();
           Set<CloseRoomHelper> differenceFromAverage = new HashSet<>();
           Stack<CloseRoomHelper> creditors = new Stack<CloseRoomHelper>();
@@ -96,8 +137,9 @@ public class RoomService {
             totalExpensePerUser.add(closeRoomHelper);
             closeRoomHelper2.setValue(averageValue-closeRoomHelper.getValue());
             differenceFromAverage.add(closeRoomHelper2);
-
-            if(averageValue+closeRoomHelper2.getValue()>=0){
+            SoloExpense soloExpense = new SoloExpense(u.getId(), room.getName(), averageValue, LocalDate.now(), false);
+            soloExpenseRepository.save(soloExpense);
+            if(closeRoomHelper2.getValue()>=0){
                 debtors.push(closeRoomHelper2);
             }
             else{
@@ -107,11 +149,12 @@ public class RoomService {
         }
         while(!creditors.empty()){
             Notification notification = new Notification();
+
             if(debtors.peek().getValue()>=abs(creditors.peek().getValue())){
                 debtors.peek().setValue(debtors.peek().getValue()+creditors.peek().getValue());
                 notification.setSenderId(creditors.peek().getUserId());
                 notification.setReceiverId(debtors.peek().getUserId());
-                notification.setMessage("you owe " + abs(creditors.peek().getValue()) + " to user " + creditors.peek().getUserId());
+                notification.setMessage("you owe " + Math.round(abs(creditors.peek().getValue())*100.0)/100.0 + " to user " + userService.getUserDetails(creditors.peek().getUserId()).getUsername());
                 notificationRepository.save(notification);
                 creditors.pop();
             }
@@ -119,12 +162,12 @@ public class RoomService {
                 creditors.peek().setValue((creditors.peek().getValue()+debtors.peek().getValue()));
                 notification.setSenderId(creditors.peek().getUserId());
                 notification.setReceiverId(debtors.peek().getUserId());
-                notification.setMessage("you owe " + debtors.peek().getValue() + "to" + creditors.peek().getUserId());
+                notification.setMessage("you owe " + Math.round(abs(debtors.peek().getValue())*100.0)/100.0 + " to user " + userService.getUserDetails(creditors.peek().getUserId()).getUsername());
                 notificationRepository.save(notification);
                 debtors.pop();
             }
         }
-//        roomRepository.delete(room);
+        roomRepository.delete(room);
       }
 
 

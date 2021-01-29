@@ -1,5 +1,7 @@
 package com.ziora.splir.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,10 +16,11 @@ public class Room {
     private Long administratorId;
     private Double totalExpense=0.0;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-//    @JoinTable(name ="events_users",
-//    joinColumns = @JoinColumn(name="events_id"),
-//    inverseJoinColumns = @JoinColumn(name="user_id"))
+    @JsonIgnore
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST,CascadeType.MERGE,CascadeType.DETACH})
+    @JoinTable(name ="rooms_users",
+    joinColumns = @JoinColumn(name="room_id"),
+    inverseJoinColumns = @JoinColumn(name="users_id"))
     private Set<User> users = new HashSet<>();
 
     public Double getTotalExpense() {

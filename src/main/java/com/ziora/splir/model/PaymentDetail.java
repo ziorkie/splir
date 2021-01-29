@@ -1,11 +1,13 @@
 package com.ziora.splir.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.format.annotation.NumberFormat;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
-import java.util.HashSet;
-import java.util.Set;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Entity
 @Table(name="payment_details")
@@ -25,6 +27,7 @@ public class PaymentDetail {
     @NumberFormat(style= NumberFormat.Style.NUMBER)
     private String accountNumber;
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     private User user;
 
