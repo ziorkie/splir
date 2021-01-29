@@ -1,6 +1,6 @@
 package com.ziora.splir.model;
 
-import org.hibernate.annotations.NaturalId;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
@@ -45,9 +45,13 @@ public class User {
     private Set<Role> roles = new HashSet<>();
 
 
+    @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private PaymentDetail paymentDetail;
 
+    @JsonIgnore
+    @ManyToMany(mappedBy = "users")
+    Set<Room> room;
 
 
     public void createConnectionWith(PaymentDetail paymentDetail){

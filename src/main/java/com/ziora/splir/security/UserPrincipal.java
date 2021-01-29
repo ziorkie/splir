@@ -1,9 +1,8 @@
 package com.ziora.splir.security;
 
 
-import com.ziora.splir.model.User;
-import com.ziora.splir.repository.UserRepository;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.ziora.splir.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
