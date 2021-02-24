@@ -127,16 +127,13 @@ public class RoomService {
           if(((room.getTotalExpense()/room.getUsers().size()%1)<0.5)&&decimalPlaces>2){
               averageValue=averageValue+0.01;
           }
-          Set<CloseRoomHelper> totalExpensePerUser = new HashSet<>();
-          Set<CloseRoomHelper> differenceFromAverage = new HashSet<>();
+
           Stack<CloseRoomHelper> creditors = new Stack<CloseRoomHelper>();
           Stack<CloseRoomHelper> debtors = new Stack<CloseRoomHelper>();
         for(User u : room.getUsers()){
             CloseRoomHelper closeRoomHelper = new CloseRoomHelper(u.getId(), groupExpenseRepository.getTotalExpenseByUserAndRoom(roomId, u.getId()).orElseGet(()->0.0));
             CloseRoomHelper closeRoomHelper2 = new CloseRoomHelper(closeRoomHelper.getUserId(), closeRoomHelper.getValue());
-            totalExpensePerUser.add(closeRoomHelper);
             closeRoomHelper2.setValue(averageValue-closeRoomHelper.getValue());
-            differenceFromAverage.add(closeRoomHelper2);
             SoloExpense soloExpense = new SoloExpense(u.getId(), room.getName(), averageValue, LocalDate.now(), false);
             soloExpenseRepository.save(soloExpense);
             if(closeRoomHelper2.getValue()>=0){
